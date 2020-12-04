@@ -5,17 +5,61 @@ class BackgroundWidget extends StatefulWidget {
   //BackgroundWidget({Key key}) : super(key: key);
   final Data boxData;
   BackgroundWidget({this.boxData});
-  _BackgroundWidgetState createState() => _BackgroundWidgetState(boxData: boxData);
+  BackgroundWidgetState createState() => BackgroundWidgetState(boxData: boxData);
   Widget build(BuildContext context) {
 
   }
 }
 
 
-class _BackgroundWidgetState extends State<BackgroundWidget> {
+class BackgroundWidgetState extends State<BackgroundWidget> with TickerProviderStateMixin{
   final Data boxData;
-  _BackgroundWidgetState({this.boxData});
+  BackgroundWidgetState({this.boxData});
   @override
+
+
+  Widget pulser(List<List<double>> pulseDurations, List<List<Color>> pulseColors, int measureNumber) {
+    return Stack(
+      children: [
+        for (int i = 0; i < pulseColors[measureNumber - 1].length; i++)
+          SpinKitPulse(
+            color: pulseColors[measureNumber - 1][i],
+            size: 400.0,
+            intervalOne: pulseDurations[measureNumber - 1][i*2],
+            intervalTwo: pulseDurations[measureNumber - 1][i*2 + 1],
+            controller: AnimationController(
+              vsync: this,
+              duration: Duration(milliseconds: 4000),
+            ),
+          )
+      ],
+    );
+  }
+
+  Function check(int measureNumber) {
+    return () {
+        List<String> loadAllArray = loadListsforPlay(measureNumber, boxData);
+        player.play('metronome.wav');
+        _vibrate(vibrateRhythmNums[measureNumber - 1],
+            boxRhythmNums[measureNumber - 1]);
+        //var duration = await player.setUrl('https://storage.googleapis.com/mehek_box_sounds/sounds/Index11Length2.wav');
+        setState(() {
+          //player.play();
+          for (String j in loadAllArray) {
+            player.play(j);
+          }
+          setState(() {
+            pulsesUsing[measureNumber - 1] = pulser(pulseDurations, pulseColors, measureNumber);
+          });
+          Future.delayed(Duration(milliseconds: 4000), () {
+            setState(() {
+              pulsesUsing[measureNumber - 1] = Container();
+            });
+          });
+        });
+      };
+  }
+
 
   Widget build(BuildContext context) {
     return Container (
@@ -29,21 +73,28 @@ class _BackgroundWidgetState extends State<BackgroundWidget> {
                   children: [
                     for (int i = 0; i < howFullNums.length; i++)
                       Center (
-                        child: MeasureBoxWidget(boxData: boxData, measureNumber: 1 + i, duration: 1000),
+                          child: MeasureBoxWidget(boxData: boxData, measureNumber: i+1, duration: 1000)
                       )
                   ]
               ),
+              IconButton(
+                iconSize: 80.0,
+                icon: Icon(Icons.check_circle),
+                color: Colors.green,
+                disabledColor: Colors.grey,
+                onPressed: check(1),
+              ),
               Expanded(
-                child: Container (
-                  height: 200,
-                  width: MediaQuery.of(context).size.width,
-                  color: Colors.blue,
-                  child: Icon(
-                    Icons.delete_outline,
-                    color: Colors.white,
-                    size: 50.0,
-                  ),
-                )
+                  child: Container (
+                    height: 200,
+                    width: MediaQuery.of(context).size.width,
+                    color: Colors.blue,
+                    child: Icon(
+                      Icons.delete_outline,
+                      color: Colors.white,
+                      size: 50.0,
+                    ),
+                  )
               )
             ]
         );
