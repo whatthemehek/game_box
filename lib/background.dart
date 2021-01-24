@@ -36,27 +36,38 @@ class BackgroundWidgetState extends State<BackgroundWidget> with TickerProviderS
     );
   }
 
-  Function check(int measureNumber) {
+  play(String path) async {
+    AudioPlayer audioPlayer = AudioPlayer();
+    await audioPlayer.setUrl(path);
+    int result = await audioPlayer.play(path);
+  }
+
+  Function _enablePlayButton() {
     return () {
-        List<String> loadAllArray = loadListsforPlay(measureNumber, boxData);
-        player.play('metronome.wav');
-        _vibrate(vibrateRhythmNums[measureNumber - 1],
-            boxRhythmNums[measureNumber - 1]);
-        //var duration = await player.setUrl('https://storage.googleapis.com/mehek_box_sounds/sounds/Index11Length2.wav');
-        setState(() {
-          //player.play();
-          for (String j in loadAllArray) {
-            player.play(j);
-          }
-          setState(() {
-            pulsesUsing[measureNumber - 1] = pulser(pulseDurations, pulseColors, measureNumber);
-          });
-          Future.delayed(Duration(milliseconds: 4000), () {
+        for (int measureNumber = 0; measureNumber < 4; measureNumber++) {
+          Future.delayed(Duration(milliseconds: 4000*measureNumber), () {
+            randomizeRhythm(boxData);
+            List<String> loadAllArray = loadListsforPlay(measureNumber+1, boxData, correctListNames);
+            play(baseURL + 'metronome.mp3');
+            _vibrate(vibrateRhythmNums[measureNumber],
+                boxRhythmNums[measureNumber]);
+            //var duration = await player.setUrl('https://storage.googleapis.com/mehek_box_sounds/sounds/Index11Length2.wav');
             setState(() {
-              pulsesUsing[measureNumber - 1] = Container();
+
+              for (String j in loadAllArray) {
+                play(j);
+              }
+              setState(() {
+                pulsesUsing[measureNumber] = pulser(pulseDurations, pulseColors, measureNumber+1);
+              });
+              Future.delayed(Duration(milliseconds: 4000), () {
+                setState(() {
+                  pulsesUsing[measureNumber] = Container();
+                });
+              });
             });
           });
-        });
+        }
       };
   }
 
@@ -82,7 +93,7 @@ class BackgroundWidgetState extends State<BackgroundWidget> with TickerProviderS
                 icon: Icon(Icons.check_circle),
                 color: Colors.green,
                 disabledColor: Colors.grey,
-                onPressed: check(1),
+                onPressed: _enablePlayButton(),
               ),
               Expanded(
                   child: Container (
@@ -103,8 +114,8 @@ class BackgroundWidgetState extends State<BackgroundWidget> with TickerProviderS
           onAccept: (data) {
             setState(() {
               successfulDropNums[data[1]] = true;
-              howFullNums[data[1]] = howFullNums[data[1]] - boxData.listOfDurations[boxData.listOfNames.indexOf(currentListNums[data[1]][data[0]])];
-              currentListNums[data[1]].removeAt(data[0]);
+              howFullNums[data[1]] = howFullNums[data[1]] - boxData.listOfDurations[boxData.listOfNames.indexOf(currentListNames[data[1]][data[0]])];
+              currentListNames[data[1]].removeAt(data[0]);
             });
           },
           onLeave: (data) {

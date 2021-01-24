@@ -14,10 +14,6 @@ class MeasureBoxWidget extends StatefulWidget {
 
 
 
-final AudioCache player = new AudioCache(prefix: 'sounds/');
-//final player = AudioPlayer();
-
-
 void _vibrate(List<int> vibrateRhythm, List<int> boxRhythm) async {
   if (await Vibration.hasVibrator() && await Vibration.hasCustomVibrationsSupport()) {
     vibrateRhythm.clear();
@@ -36,17 +32,20 @@ void _vibrate(List<int> vibrateRhythm, List<int> boxRhythm) async {
   }
 }
 
+String baseURL = "https://storage.googleapis.com/mehek_box_sounds/sounds_mp3/";
 
 String _canPlay = 'Measure not full: Fill to play';
 
 List<Widget> pulsesUsing = [Container(), Container(), Container(), Container()];
 
-List<String> loadListsforPlay(int measureNumber, Data boxData) {
+List<String> loadListsforPlay(int measureNumber, Data boxData, var list) {
+  print(list);
+
   pulseDurations[measureNumber - 1].clear();
   pulseColors[measureNumber - 1].clear();
   rhythmColorLists[measureNumber - 1].clear();
   boxRhythmNums[measureNumber - 1].clear();
-  for (var l in currentListNums[measureNumber - 1]) {
+  for (var l in list[measureNumber - 1]) {
     boxRhythmNums[measureNumber - 1].addAll(boxData.rhythmArrays[boxData.listOfNames.indexOf(l)]);
     for (int i = 0; i < boxData.rhythmArrays[boxData.listOfNames.indexOf(l)].length; i++) {
       rhythmColorLists[measureNumber - 1].add(boxData.listOfColors[boxData.listOfNames.indexOf(l)]);
@@ -56,18 +55,23 @@ List<String> loadListsforPlay(int measureNumber, Data boxData) {
   List<String> loadAllArray = [];
   double lastTime = 0.0;
   for (int i = 0; i < boxRhythmNums[measureNumber - 1].length; i++) {
-    loadAllArray.add('Index'+ (i + 1).toString() + 'Length' + boxRhythmNums[measureNumber - 1][i].toString() + '.wav');
-    pulseDurations[measureNumber - 1].add(lastTime);
-    pulseDurations[measureNumber - 1].add(lastTime + boxRhythmNums[measureNumber - 1][i] / 16.0);
-    lastTime = lastTime + boxRhythmNums[measureNumber - 1][i] / 16.0;
-    print(pulseDurations);
-    pulseColors[measureNumber - 1].add(rhythmColorLists[measureNumber - 1][i]);
-    if (boxRhythmNums[measureNumber - 1][i] != 0) {
-      i = i + boxRhythmNums[measureNumber - 1][i] - 1;
-    }
+      loadAllArray.add(baseURL+ 'Index'+ (i + 1).toString() + 'Length' + boxRhythmNums[measureNumber - 1][i].toString() + '.wav');
+      pulseDurations[measureNumber - 1].add(lastTime);
+      int duration = 0;
+      if (boxRhythmNums[measureNumber - 1][i] != 0) {
+        duration = boxRhythmNums[measureNumber - 1][i];
+      } else {
+        for (int j = i; j < boxRhythmNums[measureNumber - 1].length; j++) {
+          if (boxRhythmNums[measureNumber - 1][j] == 0) {
+            duration++;
+          }
+        }
+      }
+      pulseDurations[measureNumber - 1].add(lastTime + duration / 16.0);
+      lastTime = lastTime + duration / 16.0;
+      pulseColors[measureNumber - 1].add(rhythmColorLists[measureNumber - 1][i]);
+      i = i + duration - 1;
   }
-  player.load('metronome.wav');
-  player.loadAll(loadAllArray);
   return(loadAllArray);
 }
 
@@ -130,21 +134,26 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
         );
   }
 
+  Function checkIfCorrect() {}
 
+  play(String path) async {
+    AudioPlayer audioPlayer = AudioPlayer();
+    await audioPlayer.setUrl(path);
+    int result = await audioPlayer.play(path);
+  }
 
-  Function play() {
+  Function _enablePlayButton() {
     isButtonEnabled = (howFullNums[measureNumber - 1] == boxData.maxFull);
     if (isButtonEnabled) {
       _canPlay = 'Measure is full: Can Play';
       return () async {
-        List<String> loadAllArray = loadListsforPlay(measureNumber, boxData);
-        player.play('metronome.wav');
+        List<String> loadAllArray = loadListsforPlay(measureNumber, boxData, currentListNames);
         _vibrate(vibrateRhythmNums[measureNumber - 1], boxRhythmNums[measureNumber - 1]);
         //var duration = await player.setUrl('https://storage.googleapis.com/mehek_box_sounds/sounds/Index11Length2.wav');
         setState(() {
-          //player.play();
+          play(baseURL + 'metronome.mp3');
           for (String j in loadAllArray) {
-            player.play(j);
+            play(j);
           }
           setState(() {
             pulsesUsing[measureNumber - 1] = pulser(pulseDurations, pulseColors);
@@ -166,7 +175,7 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
     return () {
       setState(() {
         isAccessible = true;
-        currentListNums[measureNumber - 1].removeAt(indexCurrentList);
+        currentListNames[measureNumber - 1].removeAt(indexCurrentList);
         howFullNums[measureNumber - 1] -= boxData.listOfDurations[indexData];
       });
     };
@@ -185,6 +194,17 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
                       alignment: Alignment.center,
                       children: [
                         pulsesUsing[measureNumber - 1],
+                        Container(
+                          height: boxData.boxHeight * n,
+                          width: boxData.boxWidth * n,
+                          decoration: BoxDecoration(
+                            color: Color(0xc9c9c9),
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 2 * n,
+                            ),
+                          ),
+                        ),
                         Container(
                             decoration: BoxDecoration(
                               border: Border.all(
@@ -206,15 +226,15 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
                                 child: Center(
                                     child: Row(
                                       children: [
-                                        for (int i = 0; i < currentListNums[measureNumber - 1].length; i++)
+                                        for (int i = 0; i < currentListNames[measureNumber - 1].length; i++)
                                           Container (
-                                              width: boxData.listOfWidths[boxData.listOfNames.indexOf(currentListNums[measureNumber - 1][i])]*n,
+                                              width: boxData.listOfWidths[boxData.listOfNames.indexOf(currentListNames[measureNumber - 1][i])]*n,
                                               height:(boxData.boxHeight - 4)*n,
                                               child: RawMaterialButton(
-                                                onPressed: _removeRhythm(i, boxData.listOfNames.indexOf(currentListNums[measureNumber - 1][i])),
+                                                onPressed: _removeRhythm(i, boxData.listOfNames.indexOf(currentListNames[measureNumber - 1][i])),
                                                 padding: EdgeInsets.all(0),
-                                                child: Tooltip(message: currentListNums[measureNumber - 1][i],
-                                                    child: boxData.listOfContainers[boxData.listOfNames.indexOf(currentListNums[measureNumber - 1][i])]),
+                                                child: Tooltip(message: currentListNames[measureNumber - 1][i],
+                                                    child: boxData.listOfContainers[boxData.listOfNames.indexOf(currentListNames[measureNumber - 1][i])]),
                                               )
                                           )
                                       ],
@@ -234,7 +254,7 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
                       icon: Icon(Icons.play_circle_filled),
                       color: Colors.blue,
                       disabledColor: Colors.grey,
-                      onPressed: play(),
+                      onPressed: _enablePlayButton(),
                     ),
                   )
                 )]
@@ -248,6 +268,13 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
                   alignment: Alignment.center,
                   children: [
                     pulsesUsing[measureNumber - 1],
+                    Container(
+                      height: boxData.boxHeight * n,
+                      width: boxData.boxWidth * n,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                      ),
+                    ),
                     Container (
                       decoration: BoxDecoration(
                         border: Border.all(
@@ -268,14 +295,14 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
                         child: Center ( // Draws the blocks currently in the box
                           child: Row(
                             children: [
-                              for (var i in currentListNums[measureNumber - 1])
+                              for (var i in currentListNames[measureNumber - 1])
                               Draggable(
                                 child: boxData.listOfContainers[boxData.listOfNames.indexOf(i)],
                                 feedback: Material (
                                   child: boxData.listOfContainers[boxData.listOfNames.indexOf(i)],
                                 ),
                                 childWhenDragging: null,
-                                data: ([currentListNums[measureNumber - 1].indexOf(i), measureNumber - 1]),
+                                data: ([currentListNames[measureNumber - 1].indexOf(i), measureNumber - 1]),
                               ),
                             ],
                           )
@@ -292,7 +319,7 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
                     icon: Icon(Icons.play_circle_filled),
                     color: Colors.blue,
                     disabledColor: Colors.grey,
-                    onPressed: play(),
+                    onPressed: _enablePlayButton(),
                     tooltip: "Play Rhythm",
                   ),
                 )
@@ -313,7 +340,7 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
           setState(() {
             isAccessible = false;
             howFullNums[measureNumber - 1] = boxData.listOfDurations[boxData.listOfNames.indexOf(data)] + howFullNums[measureNumber - 1];
-            currentListNums[measureNumber - 1].add(data);
+            currentListNames[measureNumber - 1].add(data);
           });
         },
         onLeave: (data) {

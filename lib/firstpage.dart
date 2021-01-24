@@ -11,7 +11,7 @@ class _FirstPageWidgetState extends State<FirstPage> {
         setState(() {
           isAccessible = true;
           if (boxData.listOfDurations[index] + howFullNums[measureNumber - 1] <= boxData.maxFull) {
-            currentListNums[measureNumber - 1].add(boxData.listOfNames[index]);
+            currentListNames[measureNumber - 1].add(boxData.listOfNames[index]);
             howFullNums[measureNumber - 1] += boxData.listOfDurations[index];
           }
         });
@@ -33,7 +33,7 @@ class _FirstPageWidgetState extends State<FirstPage> {
       if (isButtonEnabled) {
         return () {
           setState(() {
-            currentListNums[currentMeasureNum - 1] = [];
+            currentListNames[currentMeasureNum - 1] = [];
             boxRhythmNums[currentMeasureNum - 1] = [];
             vibrateRhythmNums[currentMeasureNum - 1] = [250];
             howFullNums.removeAt(currentMeasureNum - 1);

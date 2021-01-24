@@ -1,11 +1,11 @@
 import 'dart:ui';
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audio_cache.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:vibration/vibration.dart';
-import 'package:just_audio/just_audio.dart';
 
 part 'data.dart';
 part 'drawer.dart';
@@ -13,6 +13,7 @@ part 'background.dart';
 part 'measure.dart';
 part 'firstpage.dart';
 part 'spinkit.dart';
+part 'randomizer.dart';
 
 void main() {
   runApp(MehekBox());

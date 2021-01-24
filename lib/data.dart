@@ -11,7 +11,8 @@ final List<List<int>> vibrateRhythmNums = [[250], [250], [250], [250]];
 
 final List<int> howFullNums = [0];
 
-var currentListNums = [[], [], [], []];
+var currentListNames = [[], [], [], []];
+var correctListNames = [[], [], [], []];
 var isAccessible = false;
 int currentMeasureNum = 1;
 
