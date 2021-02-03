@@ -5,6 +5,7 @@ Function randomizeRhythm (Data boxData) {
   int howFull = 0;
   for (int i = 0; i < 4; i++) {
     correctListNames[i].clear();
+    correctRhythmNums[i].clear();
     while (howFull != maxFull) {
       int fullLeft = maxFull - howFull;
       var validBlocks = [];
@@ -17,7 +18,13 @@ Function randomizeRhythm (Data boxData) {
       int randomBlock = random.nextInt(validBlocks.length - 1);
       correctListNames[i].add(validBlocks[randomBlock]);
       howFull += boxData.listOfDurations[boxData.listOfNames.indexOf(validBlocks[randomBlock])];
+
     }
     howFull = 0;
+  }
+  for (int i = 0; i < 4; i++) {
+    for (var l in correctListNames[i]) {
+      correctRhythmNums[i].addAll(boxData.rhythmArrays[boxData.listOfNames.indexOf(l)]);
+    }
   }
 }

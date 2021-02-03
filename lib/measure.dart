@@ -4,7 +4,8 @@ class MeasureBoxWidget extends StatefulWidget {
   final Data boxData;
   final int measureNumber;
   final int duration;
-  MeasureBoxWidget({Key key, this.boxData, this.measureNumber, this.duration}) : super(key: key);
+  final Function() notifyParent;
+  MeasureBoxWidget({Key key, this.boxData, this.measureNumber, this.duration, @required this.notifyParent}) : super(key: key);
   @override
   MBWidgetState createState() => MBWidgetState(boxData: boxData, measureNumber: measureNumber, duration: duration);
   Widget build(BuildContext context) {
@@ -39,8 +40,6 @@ String _canPlay = 'Measure not full: Fill to play';
 List<Widget> pulsesUsing = [Container(), Container(), Container(), Container()];
 
 List<String> loadListsforPlay(int measureNumber, Data boxData, var list) {
-  print(list);
-
   pulseDurations[measureNumber - 1].clear();
   pulseColors[measureNumber - 1].clear();
   rhythmColorLists[measureNumber - 1].clear();
@@ -55,7 +54,7 @@ List<String> loadListsforPlay(int measureNumber, Data boxData, var list) {
   List<String> loadAllArray = [];
   double lastTime = 0.0;
   for (int i = 0; i < boxRhythmNums[measureNumber - 1].length; i++) {
-      loadAllArray.add(baseURL+ 'Index'+ (i + 1).toString() + 'Length' + boxRhythmNums[measureNumber - 1][i].toString() + '.wav');
+      loadAllArray.add(baseURL+ 'Index'+ (i + 1).toString() + 'Length' + boxRhythmNums[measureNumber - 1][i].toString() + '.mp3');
       pulseDurations[measureNumber - 1].add(lastTime);
       int duration = 0;
       if (boxRhythmNums[measureNumber - 1][i] != 0) {
@@ -177,6 +176,7 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
         isAccessible = true;
         currentListNames[measureNumber - 1].removeAt(indexCurrentList);
         howFullNums[measureNumber - 1] -= boxData.listOfDurations[indexData];
+        widget.notifyParent();
       });
     };
   }
@@ -245,19 +245,7 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
                       ]
                     ),
                 ),
-                Container(
-                  child: Semantics(
-                    label: 'Play Button',
-                    value: _canPlay,
-                    child: IconButton(
-                      iconSize: 80.0,
-                      icon: Icon(Icons.play_circle_filled),
-                      color: Colors.blue,
-                      disabledColor: Colors.grey,
-                      onPressed: _enablePlayButton(),
-                    ),
-                  )
-                )]
+              ]
           )
       );
     } else {
@@ -312,17 +300,6 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
 
                   ]
                 ),
-                  //Draws the box, with the right size
-                Container(
-                  child: IconButton (
-                    iconSize: 80.0,
-                    icon: Icon(Icons.play_circle_filled),
-                    color: Colors.blue,
-                    disabledColor: Colors.grey,
-                    onPressed: _enablePlayButton(),
-                    tooltip: "Play Rhythm",
-                  ),
-                )
               ]
           );
         },
@@ -340,7 +317,9 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
           setState(() {
             isAccessible = false;
             howFullNums[measureNumber - 1] = boxData.listOfDurations[boxData.listOfNames.indexOf(data)] + howFullNums[measureNumber - 1];
+            print(howFullNums[measureNumber - 1]);
             currentListNames[measureNumber - 1].add(data);
+            widget.notifyParent();
           });
         },
         onLeave: (data) {
