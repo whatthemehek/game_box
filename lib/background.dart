@@ -95,11 +95,10 @@ class BackgroundWidgetState extends State<BackgroundWidget> with TickerProviderS
           }
         }
         if (isCorrect) {
-          print("correct");
           randomizeRhythm(boxData);
+          _showCorrectDialog(context);
         } else {
-          print('wrong, current: ' + boxRhythmNums.toString() +
-              ", correct: " + correctRhythmNums.toString());
+          _showIncorrectDialog(context);
         }
       };
     } else {

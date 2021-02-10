@@ -15,6 +15,7 @@ part 'measure.dart';
 part 'firstpage.dart';
 part 'spinkit.dart';
 part 'randomizer.dart';
+part 'popup.dart';
 
 void main() {
   runApp(MehekBox());

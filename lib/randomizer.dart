@@ -1,7 +1,7 @@
 part of 'main.dart';
 
 Function randomizeRhythm (Data boxData) {
-  int maxFull = 16;
+  int maxFull = boxData.maxFull;
   int howFull = 0;
 
   for (int i = 0; i < 4; i++) {
