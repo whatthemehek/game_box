@@ -39,29 +39,47 @@ String _canPlay = 'Measure not full: Fill to play';
 
 List<Widget> pulsesUsing = [Container(), Container(), Container(), Container()];
 
-List<String> loadListsforPlay(int measureNumber, Data boxData, var list) {
+Function loadRhythmNums(int measureNumber, Data boxData, var list, bool isCorrect) {
+  if (isCorrect) {
+    correctRhythmNums[measureNumber - 1].clear();
+    for (var l in list[measureNumber - 1]) {
+      correctRhythmNums[measureNumber - 1].addAll(boxData.rhythmArrays[boxData.listOfNames.indexOf(l)]);
+      for (int i = 0; i < boxData.rhythmArrays[boxData.listOfNames.indexOf(l)].length; i++) {
+        rhythmColorLists[measureNumber - 1].add(boxData.listOfColors[boxData.listOfNames.indexOf(l)]);
+      }
+    }
+  } else {
+    boxRhythmNums[measureNumber - 1].clear();
+    for (var l in list[measureNumber - 1]) {
+      boxRhythmNums[measureNumber - 1].addAll(boxData.rhythmArrays[boxData.listOfNames.indexOf(l)]);
+    }
+  }
+}
+
+List<String> loadListsforPlay(int measureNumber, Data boxData, var list, bool isCorrect) {
   pulseDurations[measureNumber - 1].clear();
   pulseColors[measureNumber - 1].clear();
   rhythmColorLists[measureNumber - 1].clear();
-  boxRhythmNums[measureNumber - 1].clear();
-  for (var l in list[measureNumber - 1]) {
-    boxRhythmNums[measureNumber - 1].addAll(boxData.rhythmArrays[boxData.listOfNames.indexOf(l)]);
-    for (int i = 0; i < boxData.rhythmArrays[boxData.listOfNames.indexOf(l)].length; i++) {
-      rhythmColorLists[measureNumber - 1].add(boxData.listOfColors[boxData.listOfNames.indexOf(l)]);
-    }
+  loadRhythmNums(measureNumber, boxData, list, isCorrect);
+  var numslist;
+  if (isCorrect) {
+    numslist = correctRhythmNums;
+  } else {
+    numslist = boxRhythmNums;
   }
   //player.clearCache();
+
   List<String> loadAllArray = [];
   double lastTime = 0.0;
-  for (int i = 0; i < boxRhythmNums[measureNumber - 1].length; i++) {
-      loadAllArray.add(baseURL+ 'Index'+ (i + 1).toString() + 'Length' + boxRhythmNums[measureNumber - 1][i].toString() + '.mp3');
+  for (int i = 0; i < numslist[measureNumber - 1].length; i++) {
+      loadAllArray.add(baseURL+ 'Index'+ (i + 1).toString() + 'Length' + numslist[measureNumber - 1][i].toString() + '.mp3');
       pulseDurations[measureNumber - 1].add(lastTime);
       int duration = 0;
-      if (boxRhythmNums[measureNumber - 1][i] != 0) {
-        duration = boxRhythmNums[measureNumber - 1][i];
+      if (numslist[measureNumber - 1][i] != 0) {
+        duration = numslist[measureNumber - 1][i];
       } else {
-        for (int j = i; j < boxRhythmNums[measureNumber - 1].length; j++) {
-          if (boxRhythmNums[measureNumber - 1][j] == 0) {
+        for (int j = i; j < numslist[measureNumber - 1].length; j++) {
+          if (numslist[measureNumber - 1][j] == 0) {
             duration++;
           }
         }
@@ -139,35 +157,6 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
     AudioPlayer audioPlayer = AudioPlayer();
     await audioPlayer.setUrl(path);
     int result = await audioPlayer.play(path);
-  }
-
-  Function _enablePlayButton() {
-    isButtonEnabled = (howFullNums[measureNumber - 1] == boxData.maxFull);
-    if (isButtonEnabled) {
-      _canPlay = 'Measure is full: Can Play';
-      return () async {
-        List<String> loadAllArray = loadListsforPlay(measureNumber, boxData, currentListNames);
-        _vibrate(vibrateRhythmNums[measureNumber - 1], boxRhythmNums[measureNumber - 1]);
-        //var duration = await player.setUrl('https://storage.googleapis.com/mehek_box_sounds/sounds/Index11Length2.wav');
-        setState(() {
-          play(baseURL + 'metronome.mp3');
-          for (String j in loadAllArray) {
-            play(j);
-          }
-          setState(() {
-            pulsesUsing[measureNumber - 1] = pulser(pulseDurations, pulseColors);
-          });
-          Future.delayed(Duration(milliseconds: 4000), () {
-            setState(() {
-              pulsesUsing[measureNumber - 1] = Container();
-            });
-          });
-        });
-      };
-    } else {
-      _canPlay = 'Measure not full: Fill to play';
-      return null;
-    }
   }
 
   Function _removeRhythm(int indexCurrentList, int indexData) {
@@ -319,6 +308,7 @@ class MBWidgetState extends State<MeasureBoxWidget> with TickerProviderStateMixi
             howFullNums[measureNumber - 1] = boxData.listOfDurations[boxData.listOfNames.indexOf(data)] + howFullNums[measureNumber - 1];
             print(howFullNums[measureNumber - 1]);
             currentListNames[measureNumber - 1].add(data);
+            loadRhythmNums(measureNumber, boxData, currentListNames, false);
             widget.notifyParent();
           });
         },

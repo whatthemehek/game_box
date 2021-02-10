@@ -6,6 +6,7 @@ class _FirstPageWidgetState extends State<FirstPage> {
   _FirstPageWidgetState({this.boxData});
   @override
   Widget build(BuildContext context) {
+    randomizeRhythm(boxData);
     Function _addRhythm(int index, Data boxData, int measureNumber) {
       return () {
         setState(() {

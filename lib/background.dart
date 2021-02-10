@@ -22,20 +22,25 @@ class BackgroundWidgetState extends State<BackgroundWidget> with TickerProviderS
   }
 
   Widget pulser(List<List<double>> pulseDurations, List<List<Color>> pulseColors, int measureNumber) {
-    return Stack(
-      children: [
-        for (int i = 0; i < pulseColors[measureNumber - 1].length; i++)
-          SpinKitPulse(
-            color: pulseColors[measureNumber - 1][i],
-            size: 400.0,
-            intervalOne: pulseDurations[measureNumber - 1][i*2],
-            intervalTwo: pulseDurations[measureNumber - 1][i*2 + 1],
-            controller: AnimationController(
-              vsync: this,
-              duration: Duration(milliseconds: 4000),
-            ),
-          )
-      ],
+    print("using");
+    return Container(
+      height: 400,
+      width: 400,
+        child: Stack(
+          children: [
+            for (int i = 0; i < pulseColors[measureNumber - 1].length; i++)
+              SpinKitPulse(
+                color: pulseColors[measureNumber - 1][i],
+                size: 400.0,
+                intervalOne: pulseDurations[measureNumber - 1][i*2],
+                intervalTwo: pulseDurations[measureNumber - 1][i*2 + 1],
+                controller: AnimationController(
+                  vsync: this,
+                  duration: Duration(milliseconds: 4000),
+                ),
+              )
+          ],
+        )
     );
   }
 
@@ -49,7 +54,7 @@ class BackgroundWidgetState extends State<BackgroundWidget> with TickerProviderS
     return () {
         for (int measureNumber = 0; measureNumber < measuresOpen; measureNumber++) {
           Future.delayed(Duration(milliseconds: 4000*measureNumber), () {
-            List<String> loadAllArray = loadListsforPlay(measureNumber+1, boxData, correctListNames);
+            List<String> loadAllArray = loadListsforPlay(measureNumber+1, boxData, correctListNames, true);
             play(baseURL + 'metronome.mp3');
             _vibrate(vibrateRhythmNums[measureNumber],
                 boxRhythmNums[measureNumber]);
@@ -73,14 +78,19 @@ class BackgroundWidgetState extends State<BackgroundWidget> with TickerProviderS
   }
 
   Function checkIfCorrect(int measuresOpen) {
-    isCheckEnabled = (howFullNums[0] == boxData.maxFull);
+    isCheckEnabled = true;
+    for (int i = 0; i < measuresOpen; i++) {
+      if (isCheckEnabled != (howFullNums[i] == boxData.maxFull)) {
+        isCheckEnabled = false;
+      }
+    }
     if (isCheckEnabled) {
       return () {
         bool isCorrect = true;
         for (int i = 0; i < measuresOpen; i++) {
+          print(correctRhythmNums[i]);
+          print(boxRhythmNums[i]);
           if (!listEquals(boxRhythmNums[i], correctRhythmNums[i])) {
-            print(correctRhythmNums[i]);
-            print(boxRhythmNums[i]);
             isCorrect = false;
           }
         }
