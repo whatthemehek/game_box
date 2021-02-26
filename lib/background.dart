@@ -52,9 +52,11 @@ class BackgroundWidgetState extends State<BackgroundWidget> with TickerProviderS
 
   Function _enablePlayButton(int measuresOpen) {
     return () {
+        print(correctListNames);
         for (int measureNumber = 0; measureNumber < measuresOpen; measureNumber++) {
           Future.delayed(Duration(milliseconds: 4000*measureNumber), () {
             List<String> loadAllArray = loadListsforPlay(measureNumber+1, boxData, correctListNames, true);
+            print(loadAllArray);
             play(baseURL + 'metronome.mp3');
             _vibrate(vibrateRhythmNums[measureNumber],
                 boxRhythmNums[measureNumber]);

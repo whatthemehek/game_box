@@ -68,19 +68,29 @@ List<String> loadListsforPlay(int measureNumber, Data boxData, var list, bool is
     numslist = boxRhythmNums;
   }
   //player.clearCache();
-
+  print(numslist);
   List<String> loadAllArray = [];
   double lastTime = 0.0;
   for (int i = 0; i < numslist[measureNumber - 1].length; i++) {
+      print("numslist[" + (measureNumber - 1).toString() + "][" + i.toString() + "] =" + numslist[measureNumber - 1][i].toString());
       loadAllArray.add(baseURL+ 'Index'+ (i + 1).toString() + 'Length' + numslist[measureNumber - 1][i].toString() + '.mp3');
+      print(loadAllArray);
       pulseDurations[measureNumber - 1].add(lastTime);
       int duration = 0;
       if (numslist[measureNumber - 1][i] != 0) {
         duration = numslist[measureNumber - 1][i];
       } else {
-        for (int j = i; j < numslist[measureNumber - 1].length; j++) {
+        int j = i;
+        bool yes = true;
+        while(yes && j < boxData.maxFull) {
+          print("index =" +j.toString());
+          print("numslist[" + (measureNumber - 1).toString() + "][" + j.toString() + "] =" + numslist[measureNumber - 1][j].toString());
           if (numslist[measureNumber - 1][j] == 0) {
             duration++;
+            print(duration);
+            j++;
+          } else {
+            yes = false;
           }
         }
       }
