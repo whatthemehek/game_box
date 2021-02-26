@@ -13,7 +13,7 @@ import 'file:///C:/Users/mehek/OneDrive/Mehek%20Box/game_box/lib/main.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+    await tester.pumpWidget(MehekBox());
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
